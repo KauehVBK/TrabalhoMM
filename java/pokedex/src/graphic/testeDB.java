@@ -11,18 +11,16 @@ public class testeDB {
 
 	public static void main(String[] args) throws SQLException {
 		
-		Connection conec = ConnectionFactory.getConnection("localhost", "5432", "postgres", "admin", "FomeMundial");
+		Connection conec = ConnectionFactory.getConnection("localhost", "3306", "pokedex", "root", "unesc");
 		
 		if(conec != null) {
 			System.out.println("Sucexo!");
-			
+						
 			UsuarioModel model = new UsuarioModel();
-			model.setUsuario("HWFNOINFNIONOIWREFNIOWFNUIOE");
-			model.setSenha("HWFNOINFNIONOIWREFNIOWFNUIOEUHWEFIUWE");
 			
-			System.out.println("Veio até aqui");
-			new UsuarioDAO(conec).inserir(model);
-			System.out.println("Passou aqui");
+			
+			//new UsuarioDAO(conec).inserir(model);
+			//System.out.println("Passou aqui");
 			
 		}else {
 			System.out.println("não");

@@ -9,17 +9,16 @@ public class ConnectionFactory {
 		public static Connection getConnection(
 				final String enderecoIP,
 				final String enderecoPort,
+				final String nomeBanco,
 				final String user,
-				final String senha,
-				final String nomeBanco
+				final String senha
+				
 				) throws SQLException 
 		{
 			
 			return DriverManager.getConnection
 					(
-							"jdbc:postgresql://"+enderecoIP+":"+enderecoPort+"/"+nomeBanco,
-							user,
-							senha
+							"jdbc:mysql://"+enderecoIP+":"+enderecoPort+"/"+nomeBanco,user,senha
 					);
 
 		}

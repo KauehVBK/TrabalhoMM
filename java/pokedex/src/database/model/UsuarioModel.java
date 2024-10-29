@@ -3,8 +3,8 @@ package database.model;
 public class UsuarioModel {
 	
 	private long id;
-	private String usuario;
-	private String senha;
+	private String nome;
+	private String tipo;
 	
 	
 	public long getId() {
@@ -13,17 +13,18 @@ public class UsuarioModel {
 	public void setId(long id) {
 		this.id = id;
 	}
-	public String getUsuario() {
-		return usuario;
+	public String getNome() {
+		return nome;
 	}
-	public void setUsuario(String usuario) {
-		this.usuario = usuario;
+	public void setNome(String nome) {
+		this.nome = nome;
 	}
-	public String getSenha() {
-		return senha;
+	public String getTipo() {
+		return tipo;
 	}
-	public void setSenha(String senha) {
-		this.senha = senha;
+	public void setTipo(String tipo) {
+		this.tipo = tipo;
 	}
+
 
 }

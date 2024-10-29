@@ -8,8 +8,8 @@ import database.model.UsuarioModel;
 
 public class UsuarioDAO {
 	
-	private String select = "SELECT * FROM tb_user";
-	private String insert = "INSERT INTO tb_user(user_nome, user_senha) VALUES (?,?)";
+	private String select = "SELECT * FROM tb_pokemon";
+	private String insert = "INSERT INTO tb_pokemon(nome_pokemon, tipo_pokemon) VALUES (?,?)";
 	
 	private PreparedStatement pstSelect;
 	private PreparedStatement pstInsert;
@@ -23,8 +23,8 @@ public class UsuarioDAO {
 	
 	public void inserir(UsuarioModel model) throws SQLException{
 		pstInsert.clearParameters();
-		pstInsert.setString(1, model.getUsuario());
-		pstInsert.setString(2, model.getSenha());
+		pstInsert.setString(1, model.getNome());
+		pstInsert.setString(2, model.getTipo());
 		pstInsert.execute();
 	}
 
