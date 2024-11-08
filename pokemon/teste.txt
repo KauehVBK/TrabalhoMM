@@ -1,0 +1,196 @@
+package graphic;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import db.connection;
+
+public class Main {
+    public static void main(String[] args) throws SQLException {
+
+        Connection conec = null;
+        PreparedStatement select = null;
+        PreparedStatement insertEletrico = null;
+        PreparedStatement insertFogo = null;
+        PreparedStatement insertVoador = null;
+        PreparedStatement insertDeletados = null;
+        PreparedStatement DuplicateEletrico = null;
+        PreparedStatement DuplicateFogo = null;
+        PreparedStatement DuplicateVoador = null;
+        ResultSet result = null;
+
+        try {
+
+            conec = connection.getConnection("localhost", "3306", "pokedex", "root", "");
+
+            String selectQuery = "SELECT * FROM pokemon";
+            select = conec.prepareStatement(selectQuery);
+            result = select.executeQuery();
+
+            String insertE = "INSERT INTO pokemon_eletrico (id, nome, type) VALUES (?, ?, ?)";
+            insertEletrico = conec.prepareStatement(insertE);
+            String insertF = "INSERT INTO pokemon_fogo (id, nome, type) VALUES (?, ?, ?)";
+            insertFogo = conec.prepareStatement(insertF);
+            String insertV = "INSERT INTO pokemon_voador (id, nome, type) VALUES (?, ?, ?)";
+            insertVoador = conec.prepareStatement(insertV);
+            String insertD = "INSERT INTO pokemon_deletados (id, nome, type) VALUES (?, ?, ?)";
+            insertDeletados = conec.prepareStatement(insertD);
+
+            String checkDuplicateEletrico = "SELECT COUNT(*) FROM pokemon_eletrico WHERE nome = ?";
+            DuplicateEletrico = conec.prepareStatement(checkDuplicateEletrico);
+            String checkDuplicateFogo = "SELECT COUNT(*) FROM pokemon_fogo WHERE nome = ?";
+            DuplicateFogo = conec.prepareStatement(checkDuplicateFogo);
+            String checkDuplicateVoador = "SELECT COUNT(*) FROM pokemon_voador WHERE nome = ?";
+            DuplicateVoador = conec.prepareStatement(checkDuplicateVoador);
+
+            ArrayList<Pokemon> dataToMove = new ArrayList<>();
+            while (result.next()) {
+                int id = result.getInt("id");
+                String nome = result.getString("nome");
+                String type = result.getString("type");
+
+                int count = 0;
+                if (type.equalsIgnoreCase("Elétrico")) {
+                    DuplicateEletrico.setString(1, nome);
+                    ResultSet duplicateRs = DuplicateEletrico.executeQuery();
+                    duplicateRs.next();
+                    count = duplicateRs.getInt(1);
+
+                    if (count > 0) {
+                        insertDeletados.setInt(1, id);
+                        insertDeletados.setString(2, nome);
+                        insertDeletados.setString(3, type);
+                        insertDeletados.executeUpdate();
+                    } else {
+                        insertEletrico.setInt(1, id);
+                        insertEletrico.setString(2, nome);
+                        insertEletrico.setString(3, type);
+                        insertEletrico.executeUpdate();
+                    }
+                } else if (type.equalsIgnoreCase("Fogo")) {
+                    DuplicateFogo.setString(1, nome);
+                    ResultSet duplicateRs = DuplicateFogo.executeQuery();
+                    duplicateRs.next();
+                    count = duplicateRs.getInt(1);
+
+                    if (count > 0) {
+                        insertDeletados.setInt(1, id);
+                        insertDeletados.setString(2, nome);
+                        insertDeletados.setString(3, type);
+                        insertDeletados.executeUpdate();
+                    } else {
+                        insertFogo.setInt(1, id);
+                        insertFogo.setString(2, nome);
+                        insertFogo.setString(3, type);
+                        insertFogo.executeUpdate();
+                    }
+                } else if (type.equalsIgnoreCase("Voador")) {
+                    DuplicateVoador.setString(1, nome);
+                    ResultSet duplicateRs = DuplicateVoador.executeQuery();
+                    duplicateRs.next();
+                    count = duplicateRs.getInt(1);
+
+                    if (count > 0) {
+                        insertDeletados.setInt(1, id);
+                        insertDeletados.setString(2, nome);
+                        insertDeletados.setString(3, type);
+                        insertDeletados.executeUpdate();
+                    } else {
+                        insertVoador.setInt(1, id);
+                        insertVoador.setString(2, nome);
+                        insertVoador.setString(3, type);
+                        insertVoador.executeUpdate();
+                    }
+                }
+
+                Pokemon p = new Pokemon(id, nome, type, count > 0);
+                dataToMove.add(p);
+            }
+
+            updadetotal(conec, dataToMove);
+
+            System.out.println("concluído");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (result != null) result.close();
+                if (select != null) select.close();
+                if (insertEletrico != null) insertEletrico.close();
+                if (insertFogo != null) insertFogo.close();
+                if (insertVoador != null) insertVoador.close();
+                if (insertDeletados != null) insertDeletados.close();
+                if (DuplicateEletrico != null) DuplicateEletrico.close();
+                if (DuplicateFogo != null) DuplicateFogo.close();
+                if (DuplicateVoador != null) DuplicateVoador.close();
+                if (conec != null) conec.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private static void updadetotal(Connection connc, ArrayList<Pokemon> pokemon) throws SQLException {
+            Map<String, Integer> quantType = new HashMap<>();
+            Map<String, Integer> dupType = new HashMap<>();
+
+            for (Pokemon p : pokemon) {
+                quantType.put(p.gettype(), quantType.getOrDefault(p.gettype(), 0) + 1);
+                if (p.isDup()) {
+                    dupType.put(p.gettype(), dupType.getOrDefault(p.gettype(), 0) + 1);
+                }
+            }
+
+            String insertOrUpdateTotalizador = "INSERT INTO pokemon_totalizador (id, type, quant, quantdup) "
+                    + "VALUES (?, ?, ?, ?) "
+                    + "ON DUPLICATE KEY UPDATE quant = VALUES(quant), quantdup = VALUES(quantdup)";
+            PreparedStatement totalizador = connc.prepareStatement(insertOrUpdateTotalizador);
+
+            for (Map.Entry<String, Integer> entry : quantType.entrySet()) {
+                String type = entry.getKey();
+                int quant = entry.getValue();
+                int quantDup = dupType.getOrDefault(type, 0);
+
+                totalizador.setString(1, type);
+                totalizador.setInt(2, quant);
+                totalizador.setInt(3, quantDup);
+                totalizador.executeUpdate();
+            }
+
+            totalizador.close();
+        }
+
+    }
+}
+class Pokemon {
+    private int id;
+    private String pokemon;
+    private String type;
+    private boolean Dup;
+
+    public Pokemon(int id, String pokemon, String type, boolean dup) {
+        this.id = id;
+        this.pokemon = pokemon;
+        this.type = type;
+        this.Dup = dup;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getPokemon() {
+        return pokemon;
+    }
+
+    public String gettype() {
+        return type;
+    }
+
+    public boolean isDup() {return Dup;}
+}
